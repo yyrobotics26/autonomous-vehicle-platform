@@ -1,0 +1,83 @@
+version: "3.8"
+
+networks:
+  main-network:
+    driver: bridge
+
+services:
+  kafka-broker:
+    image: confluentinc/cp-kafka:7.8.0
+    hostname: kafka-broker
+    container_name: kafka-broker
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_BROKER_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-broker:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka-broker:9092,CONTROLLER://kafka-broker:9093'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-broker:9092'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      CLUSTER_ID: 'EmptNWtoR4GGWx-BH6nGLQ'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - main-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-cluster-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker:9092
+    depends_on:
+      - kafka-broker
+    networks:
+      - main-network
+
+  telemetry-service-database:
+    image: postgres:16
+    container_name: telemetry-service-postgres
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${TELEMETRY_DB_NAME}
+      POSTGRES_USER: ${TELEMETRY_DB_USER}
+      POSTGRES_PASSWORD: ${TELEMETRY_DB_PASSWORD}
+    volumes:
+        - .telemetry-db-data:/var/lib/postgresql/data
+    networks:
+      - main-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    env_file:
+      - .env
+    depends_on:
+      - telemetry-service-database
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - main-network
+
+volumes:
+  pgadmin-data:
+  kafka-data:
+  telemetry-db-data:
+
