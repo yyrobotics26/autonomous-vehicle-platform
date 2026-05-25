@@ -13,3 +13,7 @@ management:
   endpoint:
     health:
       show-details: always
+
+gateway-service:
+  telemetry:
+    destination: "ws://gateway-service:8080/ws"

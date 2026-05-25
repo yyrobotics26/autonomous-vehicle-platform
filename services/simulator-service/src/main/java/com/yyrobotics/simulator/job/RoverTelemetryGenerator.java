@@ -1,6 +1,7 @@
 package com.yyrobotics.simulator.job;
 
 import com.yyrobotics.simulator.event.RoverTelemetryEvent;
+import com.yyrobotics.simulator.service.GatewayStompClient;
 import com.yyrobotics.simulator.state.RoverTelemetryState;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,6 +15,12 @@ import java.util.concurrent.ThreadLocalRandom;
 public class RoverTelemetryGenerator {
 
     private RoverTelemetryState telemetryState;
+
+    private final GatewayStompClient gatewayStompClient;
+
+    public RoverTelemetryGenerator(GatewayStompClient gatewayStompClient) {
+        this.gatewayStompClient = gatewayStompClient;
+    }
 
     @Scheduled(fixedRate = 1000)
     public void generateAndPublishTelemetry() {
@@ -49,7 +56,7 @@ public class RoverTelemetryGenerator {
     private void publishTelemetry() {
         log.info("Rover Telemetry Event: " + telemetryState);
         RoverTelemetryEvent event = telemetryState.mapToEvent();
-        //sendEvent(event);
+        gatewayStompClient.sendTelemetry(event);
     }
 
     private void resetBattery() {
