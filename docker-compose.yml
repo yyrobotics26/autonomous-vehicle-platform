@@ -32,6 +32,32 @@ services:
     networks:
       - main-network
 
+  kafka-init:
+    image: confluentinc/cp-kafka:7.8.0
+    depends_on:
+      - kafka-broker
+    volumes:
+      - ./scripts/kafka-init.sh:/kafka-init.sh:ro
+    command: [ "/bin/bash", "/kafka-init.sh" ]
+    environment:
+      BOOTSTRAP_SERVER: kafka-broker:9092
+    networks:
+      - main-network
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.8.0
+    container_name: schema-registry
+    ports:
+      - "8085:8081"
+    depends_on:
+      - kafka-broker
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka-broker:9092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    networks:
+      - main-network
+
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-cluster-ui
@@ -40,8 +66,10 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker:9092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
     depends_on:
       - kafka-broker
+      - schema-registry
     networks:
       - main-network
 
@@ -97,6 +125,12 @@ services:
       context: ./services/gateway-service
     ports:
       - "8082:8080"
+    depends_on:
+      - kafka-broker
+      - schema-registry
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 30s

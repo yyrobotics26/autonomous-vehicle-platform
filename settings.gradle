@@ -1,0 +1,8 @@
+rootProject.name = "autonomous-vehicle-platform"
+
+include(
+        "contracts",
+        "services:simulator-service",
+        "services:gateway-service",
+        "services:telemetry-service"
+)
