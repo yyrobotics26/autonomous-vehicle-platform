@@ -146,8 +146,25 @@ services:
     ports:
       - "8083:8080"
     depends_on:
+      kafka-broker:
+        condition: service_started
+      schema-registry:
+        condition: service_started
       telemetry-service-database:
         condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://telemetry-service-database:5432/${TELEMETRY_DB_NAME}
+      DB_USERNAME: ${TELEMETRY_DB_USER}
+      DB_PASSWORD: ${TELEMETRY_DB_PASSWORD}
+      DB_DRIVER_CLASS_NAME: org.postgresql.Driver
+      KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     networks:
       - main-network
 
