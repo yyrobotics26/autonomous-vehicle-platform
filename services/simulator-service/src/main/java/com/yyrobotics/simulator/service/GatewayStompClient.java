@@ -1,5 +1,9 @@
 package com.yyrobotics.simulator.service;
 
+import com.yyrobotics.simulator.event.RoverCollisionEvent;
+import com.yyrobotics.simulator.event.RoverControlCommandEvent;
+import com.yyrobotics.simulator.event.RoverObstacleDetectedEvent;
+import com.yyrobotics.simulator.event.RoverRouteProgressEvent;
 import com.yyrobotics.simulator.event.RoverTelemetryEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +22,10 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class GatewayStompClient {
 
+    private static final String COLLISION_DESTINATION = "/rover/collision";
+    private static final String CONTROL_COMMAND_DESTINATION = "/rover/control-command";
+    private static final String OBSTACLE_DETECTED_DESTINATION = "/rover/obstacle-detected";
+    private static final String ROUTE_PROGRESS_DESTINATION = "/rover/route-progress";
     private static final String TELEMETRY_DESTINATION = "/rover/telemetry";
 
     @Value("${gateway-service.telemetry.destination}")
@@ -65,6 +73,62 @@ public class GatewayStompClient {
         stompSession.send(
                 TELEMETRY_DESTINATION,
                 telemetry
+        );
+    }
+
+    public void sendControlCommand(
+            RoverControlCommandEvent controlCommand
+    ) {
+        if (!isConnected()) {
+            log.warn("Skipping control command event because gateway websocket is not connected");
+            return;
+        }
+
+        stompSession.send(
+                CONTROL_COMMAND_DESTINATION,
+                controlCommand
+        );
+    }
+
+    public void sendRouteProgress(
+            RoverRouteProgressEvent routeProgress
+    ) {
+        if (!isConnected()) {
+            log.warn("Skipping route progress event because gateway websocket is not connected");
+            return;
+        }
+
+        stompSession.send(
+                ROUTE_PROGRESS_DESTINATION,
+                routeProgress
+        );
+    }
+
+    public void sendObstacleDetected(
+            RoverObstacleDetectedEvent obstacleDetected
+    ) {
+        if (!isConnected()) {
+            log.warn("Skipping obstacle detected event because gateway websocket is not connected");
+            return;
+        }
+
+        stompSession.send(
+                OBSTACLE_DETECTED_DESTINATION,
+                obstacleDetected
+        );
+    }
+
+    public void sendCollision(
+            RoverCollisionEvent collision
+    ) {
+        if (!isConnected()) {
+            log.warn("Skipping collision event because gateway websocket is not connected");
+            return;
+        }
+
+        stompSession.send(
+                COLLISION_DESTINATION,
+                collision
         );
     }
 
