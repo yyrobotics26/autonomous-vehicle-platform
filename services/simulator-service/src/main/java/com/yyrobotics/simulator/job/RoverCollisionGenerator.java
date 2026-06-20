@@ -1,19 +1,19 @@
 package com.yyrobotics.simulator.job;
 
-import com.yyrobotics.simulator.event.RoverCollisionEvent;
+import dto.RoverCollisionDto;
 import com.yyrobotics.simulator.service.GatewayStompClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
+
+import static websocket.WebSocketEndpoints.COLLISION_DESTINATION;
 
 @Component
 @Slf4j
 public class RoverCollisionGenerator {
 
-    private static final String ROVER_ID = "rover-id";
     private static final String[] COLLISION_TYPES = {
             "FRONTAL",
             "REAR",
@@ -29,15 +29,12 @@ public class RoverCollisionGenerator {
 
     @Scheduled(fixedRate = 1000)
     public void generateAndPublishCollision() {
-        RoverCollisionEvent event = RoverCollisionEvent.builder()
-                .roverId(ROVER_ID)
+        RoverCollisionDto event = RoverCollisionDto.builder()
                 .collisionType(generateCollisionType())
                 .impactForce(generateImpactForce())
-                .timestamp(Instant.now().toEpochMilli())
                 .build();
 
-        log.info("Rover Collision Event: {}", event);
-        gatewayStompClient.sendCollision(event);
+        gatewayStompClient.sendStompMessage(COLLISION_DESTINATION, event);
     }
 
     private String generateCollisionType() {

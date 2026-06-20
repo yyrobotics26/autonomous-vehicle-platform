@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package rover;
+
+option java_package = "com.yyrobotics.contracts.proto";
+option java_multiple_files = true;
+
+enum EventType {
+  ROVER_TELEMETRY = 0;
+  ROVER_ROUTE_PROGRESS = 1;
+  ROVER_OBSTACLE_DETECTED = 2;
+  ROVER_CONTROL_COMMAND = 3;
+  ROVER_COLLISION = 4;
+}

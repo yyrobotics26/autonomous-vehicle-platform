@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+import "eventType.proto";
+import "eventSource.proto";
+
+package rover;
+
+option java_package = "com.yyrobotics.contracts.proto";
+option java_multiple_files = true;
+
+message EventEnvelope {
+  EventType event_type = 1;
+  EventSource event_source = 2;
+  string rover_id = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  google.protobuf.Any payload = 5;
+}

@@ -1,8 +1,8 @@
 package com.yyrobotics.simulator.job;
 
-import com.yyrobotics.simulator.event.RoverTelemetryEvent;
 import com.yyrobotics.simulator.service.GatewayStompClient;
 import com.yyrobotics.simulator.state.RoverTelemetryState;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -10,9 +10,16 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static websocket.WebSocketEndpoints.TELEMETRY_DESTINATION;
+
 @Component
 @Slf4j
 public class RoverTelemetryGenerator {
+
+    @PostConstruct
+    public void init() {
+        System.out.println("SIMULATOR_BUILD_12:38");
+    }
 
     private RoverTelemetryState telemetryState;
 
@@ -54,9 +61,8 @@ public class RoverTelemetryGenerator {
     }
 
     private void publishTelemetry() {
-        log.info("Rover Telemetry Event: " + telemetryState);
-        RoverTelemetryEvent event = telemetryState.mapToEvent();
-        gatewayStompClient.sendTelemetry(event);
+        dto.RoverTelemetryDto event = telemetryState.mapToEvent();
+        gatewayStompClient.sendStompMessage(TELEMETRY_DESTINATION, event);
     }
 
     private void resetBattery() {
@@ -97,7 +103,6 @@ public class RoverTelemetryGenerator {
 
     private RoverTelemetryState createInitialTelemetryState() {
         return RoverTelemetryState.builder()
-                .roverId("rover-id")
                 .timestamp(Instant.now())
                 .x(ThreadLocalRandom.current().nextDouble())
                 .y(ThreadLocalRandom.current().nextDouble())

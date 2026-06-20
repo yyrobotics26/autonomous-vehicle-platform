@@ -1,6 +1,6 @@
 package com.yyrobotics.telemetry.config;
 
-import com.yyrobotics.contracts.proto.RoverTelemetry;
+import com.yyrobotics.contracts.proto.EventEnvelope;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
@@ -26,7 +26,7 @@ public class KafkaConsumerConfig {
     private String schemaRegistryUrl;
 
     @Bean
-    public ConsumerFactory<String, RoverTelemetry> consumerFactory() {
+    public ConsumerFactory<String, EventEnvelope> consumerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -34,13 +34,13 @@ public class KafkaConsumerConfig {
         configProps.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
         configProps.put(
                 KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE,
-                RoverTelemetry.class.getName());
+                EventEnvelope.class.getName());
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, RoverTelemetry> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, RoverTelemetry> factory =
+    public ConcurrentKafkaListenerContainerFactory<String, EventEnvelope> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, EventEnvelope> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         return factory;

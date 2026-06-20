@@ -1,15 +1,12 @@
 package com.yyrobotics.simulator.service;
 
-import com.yyrobotics.simulator.event.RoverCollisionEvent;
-import com.yyrobotics.simulator.event.RoverControlCommandEvent;
-import com.yyrobotics.simulator.event.RoverObstacleDetectedEvent;
-import com.yyrobotics.simulator.event.RoverRouteProgressEvent;
-import com.yyrobotics.simulator.event.RoverTelemetryEvent;
+import com.yyrobotics.contracts.proto.EventSource;
+import dto.BaseRoverDto;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.messaging.simp.stomp.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.client.WebSocketClient;
@@ -18,15 +15,12 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.util.concurrent.TimeUnit;
 
+import static websocket.WebSocketEndpoints.ROVER_PREFIX;
+
 @Component
 @Slf4j
 public class GatewayStompClient {
 
-    private static final String COLLISION_DESTINATION = "/rover/collision";
-    private static final String CONTROL_COMMAND_DESTINATION = "/rover/control-command";
-    private static final String OBSTACLE_DETECTED_DESTINATION = "/rover/obstacle-detected";
-    private static final String ROUTE_PROGRESS_DESTINATION = "/rover/route-progress";
-    private static final String TELEMETRY_DESTINATION = "/rover/telemetry";
 
     @Value("${gateway-service.telemetry.destination}")
     private String telemetryEndpointUrl;
@@ -52,8 +46,7 @@ public class GatewayStompClient {
 
             stompSession = stompClient.connectAsync(
                     telemetryEndpointUrl,
-                    new StompSessionHandlerAdapter() {
-                    }
+                    createStompSessionHandlerAdapter()
             ).get(1000, TimeUnit.MILLISECONDS);
 
             log.info("Connected to gateway");
@@ -62,73 +55,49 @@ public class GatewayStompClient {
         }
     }
 
-    public void sendTelemetry(
-            RoverTelemetryEvent telemetry
-    ) {
-        if (!isConnected()) {
-            log.warn("Skipping telemetry event because gateway websocket is not connected");
-            return;
-        }
+    private StompSessionHandler createStompSessionHandlerAdapter() {
+        return new StompSessionHandlerAdapter() {
 
-        stompSession.send(
-                TELEMETRY_DESTINATION,
-                telemetry
-        );
+            @Override
+            public void afterConnected(@NonNull StompSession session, @NonNull StompHeaders connectedHeaders) {
+                log.info("STOMP connected. Session id={}", session.getSessionId());
+            }
+
+            @Override
+            public void handleException(
+                    @NonNull StompSession session,
+                    StompCommand command,
+                    @NonNull StompHeaders headers,
+                     byte @NonNull [] payload,
+                    @NonNull Throwable exception) {
+
+                log.error("STOMP exception", exception);
+            }
+
+            @Override
+            public void handleTransportError(
+                    @NonNull StompSession session,
+                    @NonNull Throwable exception) {
+
+                log.error("Transport error", exception);
+            }
+        };
     }
 
-    public void sendControlCommand(
-            RoverControlCommandEvent controlCommand
-    ) {
+    public void sendStompMessage(String destination, BaseRoverDto event) {
         if (!isConnected()) {
-            log.warn("Skipping control command event because gateway websocket is not connected");
+            log.warn("Skipping sending event because gateway websocket is not connected");
             return;
         }
 
+        event.setTimestamp(System.currentTimeMillis());
+        event.setSource(EventSource.SIMULATOR_SERVICE);
+        event.setRoverId("simulator-service-rover1");
+
+        log.info("Sending event to gateway: {}", event);
         stompSession.send(
-                CONTROL_COMMAND_DESTINATION,
-                controlCommand
-        );
-    }
-
-    public void sendRouteProgress(
-            RoverRouteProgressEvent routeProgress
-    ) {
-        if (!isConnected()) {
-            log.warn("Skipping route progress event because gateway websocket is not connected");
-            return;
-        }
-
-        stompSession.send(
-                ROUTE_PROGRESS_DESTINATION,
-                routeProgress
-        );
-    }
-
-    public void sendObstacleDetected(
-            RoverObstacleDetectedEvent obstacleDetected
-    ) {
-        if (!isConnected()) {
-            log.warn("Skipping obstacle detected event because gateway websocket is not connected");
-            return;
-        }
-
-        stompSession.send(
-                OBSTACLE_DETECTED_DESTINATION,
-                obstacleDetected
-        );
-    }
-
-    public void sendCollision(
-            RoverCollisionEvent collision
-    ) {
-        if (!isConnected()) {
-            log.warn("Skipping collision event because gateway websocket is not connected");
-            return;
-        }
-
-        stompSession.send(
-                COLLISION_DESTINATION,
-                collision
+                ROVER_PREFIX + destination,
+                event
         );
     }
 

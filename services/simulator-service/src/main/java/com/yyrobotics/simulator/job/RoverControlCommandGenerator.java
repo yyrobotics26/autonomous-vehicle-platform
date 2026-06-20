@@ -1,19 +1,18 @@
 package com.yyrobotics.simulator.job;
 
-import com.yyrobotics.simulator.event.RoverControlCommandEvent;
+import dto.RoverControlCommandDto;
 import com.yyrobotics.simulator.service.GatewayStompClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
+
+import static websocket.WebSocketEndpoints.CONTROL_COMMAND_DESTINATION;
 
 @Component
 @Slf4j
 public class RoverControlCommandGenerator {
-
-    private static final String ROVER_ID = "rover-id";
 
     private final GatewayStompClient gatewayStompClient;
 
@@ -23,17 +22,14 @@ public class RoverControlCommandGenerator {
 
     @Scheduled(fixedRate = 1000)
     public void generateAndPublishControlCommand() {
-        RoverControlCommandEvent event = RoverControlCommandEvent.builder()
-                .roverId(ROVER_ID)
+        RoverControlCommandDto event = RoverControlCommandDto.builder()
                 .throttle(generateThrottle())
                 .brake(generateBrake())
                 .steering(generateSteering())
                 .reverse(ThreadLocalRandom.current().nextBoolean())
-                .timestamp(Instant.now().toEpochMilli())
                 .build();
 
-        log.info("Rover Control Command Event: {}", event);
-        gatewayStompClient.sendControlCommand(event);
+        gatewayStompClient.sendStompMessage(CONTROL_COMMAND_DESTINATION, event);
     }
 
     private double generateThrottle() {

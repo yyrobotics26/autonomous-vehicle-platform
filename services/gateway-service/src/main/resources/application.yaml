@@ -8,8 +8,6 @@ spring:
       schema:
         registry:
           url: ${SCHEMA_REGISTRY_URL}
-    topic:
-      telemetry: "telemetry-topic"
   application:
     name: gateway-service
 

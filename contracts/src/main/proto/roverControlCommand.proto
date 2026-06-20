@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package rover;
+
+option java_package = "com.yyrobotics.contracts.proto";
+option java_multiple_files = true;
+
+message RoverControlCommand {
+
+   double throttle = 1;
+   double brake = 2;
+   double steering = 3;
+   bool reverse = 4;
+
+}

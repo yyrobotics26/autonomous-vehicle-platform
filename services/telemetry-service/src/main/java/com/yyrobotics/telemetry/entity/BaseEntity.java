@@ -1,6 +1,7 @@
 package com.yyrobotics.telemetry.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.yyrobotics.contracts.proto.EventSource;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,6 +40,15 @@ public abstract class BaseEntity {
 
     @Column(name = "updated_by")
     private String updatedBy;
+
+    @Column(name = "rover_id")
+    private String roverId;
+
+    @Column(name = "time_stamp")
+    private Instant timestamp;
+
+    @Enumerated(EnumType.STRING)
+    private EventSource eventSource;
 
     @PrePersist
     protected void onCreate() {

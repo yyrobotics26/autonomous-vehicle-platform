@@ -30,6 +30,7 @@ dependencies {
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation "io.confluent:kafka-protobuf-serializer:8.2.0"
 	implementation project(":contracts")
+	implementation project(":shared")
 	implementation 'org.flywaydb:flyway-core:12.6.2'
 	implementation 'org.flywaydb:flyway-database-postgresql:12.6.2'
 	runtimeOnly 'org.postgresql:postgresql'

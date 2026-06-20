@@ -1,7 +1,6 @@
 package com.yyrobotics.gateway.config;
 
-import com.google.protobuf.Message;
-import com.yyrobotics.contracts.proto.RoverTelemetry;
+import com.yyrobotics.contracts.proto.EventEnvelope;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -26,7 +25,7 @@ public class KafkaProducerConfig {
     private String schemaRegistryUrl;
 
     @Bean
-    public ProducerFactory<String, Message> producerFactory() {
+    public ProducerFactory<String, EventEnvelope> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
@@ -44,7 +43,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, Message> kafkaTemplate() {
+    public KafkaTemplate<String, EventEnvelope> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 }
