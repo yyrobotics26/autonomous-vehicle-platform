@@ -1,19 +1,19 @@
 package com.yyrobotics.simulator.job;
 
-import com.yyrobotics.simulator.event.RoverRouteProgressEvent;
+import dto.RoverRouteProgressDto;
 import com.yyrobotics.simulator.service.GatewayStompClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
+
+import static websocket.WebSocketEndpoints.ROUTE_PROGRESS_DESTINATION;
 
 @Component
 @Slf4j
 public class RoverRouteProgressGenerator {
 
-    private static final String ROVER_ID = "rover-id";
     private static final String ROUTE_ID = "route-id";
     private static final int TOTAL_WAYPOINTS = 12;
 
@@ -29,18 +29,15 @@ public class RoverRouteProgressGenerator {
     public void generateAndPublishRouteProgress() {
         currentWaypoint = nextWaypoint();
 
-        RoverRouteProgressEvent event = RoverRouteProgressEvent.builder()
-                .roverId(ROVER_ID)
+        RoverRouteProgressDto event = RoverRouteProgressDto.builder()
                 .routeId(ROUTE_ID)
                 .currentWaypoint(currentWaypoint)
                 .totalWaypoints(TOTAL_WAYPOINTS)
                 .remainingDistanceMeters(generateRemainingDistanceMeters(currentWaypoint))
                 .navigationState(resolveNavigationState(currentWaypoint))
-                .timestamp(Instant.now().toEpochMilli())
                 .build();
 
-        log.info("Rover Route Progress Event: {}", event);
-        gatewayStompClient.sendRouteProgress(event);
+        gatewayStompClient.sendStompMessage(ROUTE_PROGRESS_DESTINATION, event);
     }
 
     private int nextWaypoint() {

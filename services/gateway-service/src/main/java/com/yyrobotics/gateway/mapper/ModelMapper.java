@@ -1,26 +1,35 @@
 package com.yyrobotics.gateway.mapper;
 
-import com.google.protobuf.Timestamp;
-import com.yyrobotics.contracts.proto.RoverTelemetry;
-import com.yyrobotics.gateway.event.RoverTelemetryEvent;
+import com.yyrobotics.contracts.proto.EventEnvelope;
+import com.yyrobotics.contracts.proto.EventType;
+import dto.BaseRoverDto;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-public final class ModelMapper {
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-    private ModelMapper() {
+@Slf4j
+@Component
+public class ModelMapper {
+
+    private final Map<EventType, RoverEventMapper> mappers;
+
+    public ModelMapper(List<RoverEventMapper> mapperList) {
+        this.mappers = mapperList.stream()
+                .collect(Collectors.toMap(
+                        RoverEventMapper::supports,
+                        Function.identity()));
     }
 
-    public static RoverTelemetry toRoverTelemetryEvent(RoverTelemetryEvent telemetryEvent) {
-        Timestamp timestamp = Timestamp.newBuilder()
-                .setSeconds(telemetryEvent.timestamp().getEpochSecond())
-                .setNanos(telemetryEvent.timestamp().getNano())
-                .build();
-        return RoverTelemetry.newBuilder()
-                .setRoverId(telemetryEvent.roverId())
-                .setX(telemetryEvent.x())
-                .setY(telemetryEvent.y())
-                .setBatteryLevel(telemetryEvent.batteryLevel())
-                .setSpeed(telemetryEvent.speed())
-                .setTimestamp(timestamp)
-                .build();
+    public EventEnvelope toRoverEvent(BaseRoverDto dto) {
+        final RoverEventMapper mapper = Optional.ofNullable(mappers.get(dto.getEventType()))
+                .orElseThrow(() -> new IllegalArgumentException("Unknown event type: " + dto.getEventType()));
+
+        log.debug("Converting event type {} to Rover event by mapper {}", dto.getEventType(), mapper.getClass());
+        return mapper.map(dto);
     }
 }

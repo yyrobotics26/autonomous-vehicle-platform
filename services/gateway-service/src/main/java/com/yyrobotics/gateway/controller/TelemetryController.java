@@ -1,28 +1,30 @@
 package com.yyrobotics.gateway.controller;
 
-import com.yyrobotics.gateway.event.RoverTelemetryEvent;
 import com.yyrobotics.gateway.mapper.ModelMapper;
 import com.yyrobotics.gateway.service.KafkaMessageSender;
-import org.springframework.beans.factory.annotation.Value;
+import dto.RoverRouteProgressDto;
+import dto.RoverTelemetryDto;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
+import websocket.WebSocketEndpoints;
+
+import static kafka.KafkaTopics.TELEMETRY_TOPIC;
 
 @Controller
 public class TelemetryController {
 
-    @Value("${spring.kafka.topic.telemetry}")
-    private String telemetryTopic;
-
     private final KafkaMessageSender kafkaSender;
+    private final ModelMapper modelMapper;
 
-    public TelemetryController(KafkaMessageSender kafkaSender) {
+    public TelemetryController(KafkaMessageSender kafkaSender, ModelMapper modelMapper) {
         this.kafkaSender = kafkaSender;
+        this.modelMapper = modelMapper;
     }
 
-    @MessageMapping("/telemetry")
-    public void processMessage(@Payload RoverTelemetryEvent telemetryEvent) {
-        kafkaSender.sendMessage(telemetryTopic, ModelMapper.toRoverTelemetryEvent(telemetryEvent));
+    @MessageMapping(value = WebSocketEndpoints.TELEMETRY_DESTINATION)
+    public void processTelemetryMessage(@Payload RoverTelemetryDto telemetryEvent) {
+        kafkaSender.sendMessage(TELEMETRY_TOPIC, modelMapper.toRoverEvent(telemetryEvent));
     }
 
 }

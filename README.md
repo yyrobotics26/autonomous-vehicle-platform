@@ -2,7 +2,7 @@ Self-Driving Car Platform
 
 A distributed self-driving car learning platform focused on:
 autonomous vehicle telemetry
-event-driven architecture
+dto-driven architecture
 cloud-native infrastructure
 AI/ML integration
 real-time data processing

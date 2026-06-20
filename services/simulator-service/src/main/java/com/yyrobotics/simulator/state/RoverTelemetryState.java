@@ -1,6 +1,6 @@
 package com.yyrobotics.simulator.state;
 
-import com.yyrobotics.simulator.event.RoverTelemetryEvent;
+import com.yyrobotics.contracts.proto.EventSource;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
@@ -19,10 +19,11 @@ public class RoverTelemetryState {
     private double speed;
     private double batteryLevel;
 
-    public RoverTelemetryEvent mapToEvent(){
-        return RoverTelemetryEvent.builder()
-                .timestamp(timestamp)
+    public dto.RoverTelemetryDto mapToEvent(){
+        return dto.RoverTelemetryDto.builder()
+                .timestamp(timestamp.toEpochMilli())
                 .roverId(roverId)
+                .source(EventSource.SIMULATOR_SERVICE)
                 .x(x)
                 .y(y)
                 .speed(speed)

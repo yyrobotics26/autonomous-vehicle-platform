@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package rover;
+
+option java_package = "com.yyrobotics.contracts.proto";
+option java_multiple_files = true;
+
+message RoverCollision {
+
+  string collisionType = 1;
+  double impactForce = 2;
+
+}

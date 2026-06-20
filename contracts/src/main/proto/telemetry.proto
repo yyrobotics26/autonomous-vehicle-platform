@@ -8,12 +8,8 @@ option java_package = "com.yyrobotics.contracts.proto";
 option java_multiple_files = true;
 
 message RoverTelemetry {
-
-  string rover_id = 1;
-
-  google.protobuf.Timestamp timestamp = 2;
-  double x = 3;
-  double y = 4;
-  double speed = 5;
-  double batteryLevel = 6;
+  double x = 1;
+  double y = 2;
+  double speed = 3;
+  double batteryLevel = 4;
 }

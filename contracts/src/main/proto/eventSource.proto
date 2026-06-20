@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package rover;
+
+option java_package = "com.yyrobotics.contracts.proto";
+option java_multiple_files = true;
+
+enum EventSource {
+  SIMULATOR_SERVICE = 0;
+  CARLA_EMULATOR = 1;
+  REAL_ROVER = 2;
+}

@@ -1,6 +1,7 @@
 package com.yyrobotics.gateway.service;
 
-import com.google.protobuf.Message;
+import com.yyrobotics.contracts.proto.EventEnvelope;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -9,13 +10,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class KafkaMessageSender {
 
-    private final KafkaTemplate<String, Message> kafkaTemplate;
 
-    public KafkaMessageSender(KafkaTemplate<String, Message> kafkaTemplate) {
+    @PostConstruct
+    public void init() {
+        log.info("Gateway-service build 15:57");
+    }
+
+    private final KafkaTemplate<String, EventEnvelope> kafkaTemplate;
+
+    public KafkaMessageSender(KafkaTemplate<String, EventEnvelope> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendMessage(String topic, Message message) {
+    public void sendMessage(String topic, EventEnvelope message) {
         log.info("Sending message: {}, to topic: {}", message, topic);
         kafkaTemplate.send(topic, message)
                 .whenComplete((res, e) -> {
